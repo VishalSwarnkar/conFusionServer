@@ -1,14 +1,6 @@
 const mongoose = require('mongoose');
 const Schema = mongoose.Schema;
 
-// {
-//       "name": "Peter Pan",
-//       "image": "images/alberto.png",
-//       "designation": "Chief Epicurious Officer",
-//       "abbr": "CEO",
-//       "description": "Our CEO, Peter, . . ."
-// }
-
 const leaderSchema = new Schema({
   name:{
     type: String,
