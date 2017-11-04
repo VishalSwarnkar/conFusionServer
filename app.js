@@ -12,36 +12,6 @@ const dishRouter = require('./routes/dishRouter');
 const promotionRouter = require('./routes/promoRouter');
 const leaderRouter = require('./routes/leaderRouter');
 
-
- // ---------------- Basic authentication
-
- function auth(req, res, next) {
-   console.log(req.headers)
-
-   var authHeader = req.headers.authorization;
-
-   if(!authHeader){
-       var error = new Error('Not an authorized user');
-     res.setHeader('www-Authenticate', 'Basic');
-     error.status = 401;
-     return next(error);
-   }
-
-   var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
-   console.log(`authorized ::: ${auth}`);
-   var userName = auth[0];
-   var password = auth[1];
-
-   if (userName === 'admin' & password === 'password'){
-     next();
-   }else {
-     var error = new Error('Not an authorized user');
-   res.setHeader('www-Authenticate', 'Basic');
-   error.status = 401;
-   return next(error);
-   }
- }
-
 // ---------- mongoose connection details
 const mongoose = require('mongoose');
 mongoose.Promise = require('bluebird');
@@ -66,13 +36,59 @@ var app = express();
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'jade');
-app.use(auth);
 // uncomment after placing your favicon in /public
 //app.use(favicon(path.join(__dirname, 'public', 'favicon.ico')));
 app.use(logger('dev'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
-app.use(cookieParser());
+app.use(cookieParser("12345-67890-65748-34564"));
+
+
+// ---------------- Basic authentication & cookies validation
+
+function auth(req, res, next) {
+  // console.log(req.signedCookies);
+  console.log(req.headers)
+
+  if(!req.signedCookies.user){
+    var authHeader = req.headers.authorization;
+
+    if(!authHeader){
+        var error = new Error('Not an authorized user');
+      res.setHeader('www-Authenticate', 'Basic');
+      error.status = 401;
+      return next(error);
+    }
+
+    var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
+    console.log(`authorized ::: ${auth}`);
+    var userName = auth[0];
+    var password = auth[1];
+
+    if (userName == 'admin' & password == 'password'){
+      res.cookie('user', 'admin', {signed: true});
+      next();
+    }else {
+      var error = new Error('Not an authorized user');
+    res.setHeader('www-Authenticate', 'Basic');
+    error.status = 401;
+    return next(error);
+    }
+  }else {
+    // console.log(req);
+    if(req.singedCookies.user){
+      next();
+    }else {
+      var error = new Error('Not an authorized user');
+    error.status = 401;
+    return next(error);
+    }
+  }
+
+}
+
+// ------------------------
+app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', index);
