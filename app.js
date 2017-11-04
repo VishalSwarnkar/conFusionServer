@@ -54,6 +54,8 @@ app.use(session({
   store: new FileStore()
 }))
 
+app.use('/', index);
+app.use('/users', users);
 // ---------------- Basic authentication & cookies validation
 
 function auth(req, res, next) {
@@ -61,38 +63,18 @@ function auth(req, res, next) {
   console.log(req.session);
 
   if(!req.session.user){
-    var authHeader = req.headers.authorization;
-
-    if(!authHeader){
-        var error = new Error('Not an authorized user');
-      res.setHeader('www-Authenticate', 'Basic');
-      error.status = 401;
+    // var authHeader = req.headers.authorization;
+      var error = new Error('You are not authenticated');
+      error.status = 403;
       return next(error);
-    }
-
-    var auth = new Buffer(authHeader.split(' ')[1], 'base64').toString().split(':');
-    console.log(`authorized ::: ${auth}`);
-    var userName = auth[0];
-    var password = auth[1];
-
-    if (userName == 'admin' & password == 'password'){
-      // res.cookie('user', 'admin', {signed: true});
-      req.session.user = 'admin';
-      next();
     }else {
-      var error = new Error('Not an authorized user');
-    res.setHeader('www-Authenticate', 'Basic');
-    error.status = 401;
-    return next(error);
-    }
-  }else {
     // if(req.singedCookies.user){
-    if(req.session.user){
+    if(req.session.user === 'authenticated'){
       next();
     }else {
-      var error = new Error('Not an authorized user');
-    error.status = 401;
-    return next(error);
+      var error = new Error('You are not authenticated');
+      error.status = 403;
+      return next(error);
     }
   }
 
@@ -102,8 +84,8 @@ function auth(req, res, next) {
 app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use('/', index);
-app.use('/users', users);
+// app.use('/', index);
+// app.use('/users', users);
 app.use('/dishes', dishRouter);
 app.use('/promotions', promotionRouter);
 app.use('/leaders', leaderRouter);
