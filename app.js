@@ -4,13 +4,12 @@ var favicon = require('serve-favicon');
 var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
-
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
-
 var passport = require('passport');
-
 var authenticate = require('./authenticate');
+
+var config = require('./config');
 
 // ------------- routers details
 var index = require('./routes/index');
@@ -25,7 +24,7 @@ mongoose.Promise = require('bluebird');
 
 const Dishes = require('./models/dishes');
 
-const url = 'mongodb://localhost:27017/confusion';
+const url = config.mongoUrl;
 
 const connect = mongoose.connect(url, {
   useMongoClient: true
@@ -50,33 +49,14 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 // app.use(cookieParser("12345-67890-65748-34564"));
 
-app.use(session({
-  name: 'session-id',
-  secret: '12345-67890-65748-34564',
-  saveUnininitialized: false,
-  resave: false,
-  store: new FileStore()
-}))
+
 
 app.use(passport.initialize());
-app.use(passport.session());
 
 app.use('/', index);
 app.use('/users', users);
 // ---------------- Basic authentication & cookies validation
 
-function auth(req, res, next) {
-  if(!req.user){
-      var error = new Error('You are not authenticated');
-      error.status = 403;
-      return next(error);
-    } else {
-      next();
-    }
-}
-
-// ------------------------
-app.use(auth);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // app.use('/', index);
