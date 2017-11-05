@@ -8,6 +8,10 @@ var bodyParser = require('body-parser');
 var session = require('express-session');
 var FileStore = require('session-file-store')(session);
 
+var passport = require('passport');
+
+var authenticate = require('./authenticate');
+
 // ------------- routers details
 var index = require('./routes/index');
 var users = require('./routes/users');
@@ -54,30 +58,21 @@ app.use(session({
   store: new FileStore()
 }))
 
+app.use(passport.initialize());
+app.use(passport.session());
+
 app.use('/', index);
 app.use('/users', users);
 // ---------------- Basic authentication & cookies validation
 
 function auth(req, res, next) {
-  // console.log(req.signedCookies);
-  console.log(req.session);
-
-  if(!req.session.user){
-    // var authHeader = req.headers.authorization;
+  if(!req.user){
       var error = new Error('You are not authenticated');
       error.status = 403;
       return next(error);
-    }else {
-    // if(req.singedCookies.user){
-    if(req.session.user === 'authenticated'){
+    } else {
       next();
-    }else {
-      var error = new Error('You are not authenticated');
-      error.status = 403;
-      return next(error);
     }
-  }
-
 }
 
 // ------------------------
