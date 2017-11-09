@@ -7,8 +7,16 @@ var authenticate = require('../authenticate');
 
 router.use(bodyParser.json());
 /* GET users listing. */
-router.get('/', function(req, res, next) {
-  res.send('respond with a resource');
+router.get('/', authenticate.verifyuser, authenticate.verifyAdmin, function(req, res, next) {
+     User.find({}, function(err, users){
+      if(err){
+        res.status = 500;
+        res.setHeader('Content-type', 'application/json');
+        res.json({err:err});
+      }else {
+        res.json(users);
+      }
+  });
 });
 
 router.post('/signup', (req, res, next)=>{

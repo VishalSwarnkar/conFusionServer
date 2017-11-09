@@ -22,7 +22,7 @@ opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
 opts.secretOrKey =  config.secretKey;
 
 exports.jwtPassport = passport.use(new JwtStrategy(opts, (jwt_payload, done)=> {
-  console.log("JWT payload"+jwt_payload);
+  console.log("JWT payload "+jwt_payload);
   User.findOne({_id: jwt_payload._id}, (err, user) =>{
     if(err){
       return done(err, false);
@@ -33,5 +33,26 @@ exports.jwtPassport = passport.use(new JwtStrategy(opts, (jwt_payload, done)=> {
     }
   })
 }));
+
+exports.verifyAdmin = function(req, res, next) {
+  console.log(req.user);
+  if(req.user.admin){
+    next();
+  }else {
+    var err = new Error('You are not authenticated!');
+     err.status = 401;
+     next(err);
+  }
+}
+
+exports.verifyCommentUser = function(req, res, next) {
+  if(!req.user.admin){
+    next();
+  }else {
+    var err = new Error('You are not authenticated!');
+     err.status = 401;
+     next(err);
+  }
+}
 
 exports.verifyuser = passport.authenticate('jwt', {session: 'false'});
