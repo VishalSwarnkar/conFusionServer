@@ -17,6 +17,7 @@ var users = require('./routes/users');
 const dishRouter = require('./routes/dishRouter');
 const promotionRouter = require('./routes/promoRouter');
 const leaderRouter = require('./routes/leaderRouter');
+const uploadRouter = require('./routes/uploadRouter');
 
 // ---------- mongoose connection details
 const mongoose = require('mongoose');
@@ -59,6 +60,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 
 app.use(passport.initialize());
+app.use('/imageUpload',uploadRouter);
 
 app.use('/', index);
 app.use('/users', users);
