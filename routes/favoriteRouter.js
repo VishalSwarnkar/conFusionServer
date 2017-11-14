@@ -65,7 +65,7 @@ favoriteRouter.route('/')
 favoriteRouter.route('/:dishId')
 .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 .get(cors.cors, authenticate.verifyuser, (req, res, next) => {
-  Favorite.find({dishes: req.params.dishId})
+  Favorite.findOne({'dishes': req.params.dishId})
   .populate('user')
   .populate('dishes')
   .then((favourites)=>{
