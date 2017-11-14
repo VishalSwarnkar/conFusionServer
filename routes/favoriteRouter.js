@@ -65,13 +65,23 @@ favoriteRouter.route('/')
 favoriteRouter.route('/:dishId')
 .options(cors.corsWithOptions, (req, res) => { res.sendStatus(200); })
 .get(cors.cors, authenticate.verifyuser, (req, res, next) => {
-  Favorite.findOne({'dishes': req.params.dishId})
-  .populate('user')
-  .populate('dishes')
-  .then((favourites)=>{
-    res.statusCode = 200
-    res.setHeader('Content-Type', 'application/json');
-    res.json(favourites);
+  Favorite.findOne({'user': req.user._id})
+  .then((favorites)=>{
+    if(!favorites){
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'application/json');
+      return res.json("exists": false, "favorites": favorites);
+    }else {
+      if(favorites.dishes.indexOf(req.params.dishId) < 0){
+        res.statusCode = 200
+        res.setHeader('Content-Type', 'application/json');
+        return res.json("exists": false, "favorites": favorites);
+      }else{
+        res.statusCode = 200
+        res.setHeader('Content-Type', 'application/json');
+        return res.json("exists": true, "favorites": favorites);
+      }
+    }
   }, (err)=>next(err))
   .catch((error)=>next(error));
 })
@@ -103,12 +113,17 @@ favoriteRouter.route('/:dishId')
 })
 .delete(cors.corsWithOptions, authenticate.verifyuser, (req, res, next) => {
   Favorite.findOneAndUpdate({'user': req.user._id}, {$pull: {dishes: req.params.dishId}})
-  .then((resp)=>{
+  .then((favorite)=>{
     res.statusCode = 200
     res.setHeader('Content-Type', 'application/json');
-    Favorite.findOne({'user': req.user._id}, (err, favorites)=>{
-        res.json(favorites);
-    });
+    Favorites.findById(favorite._id)
+    .populate('user')
+    .populate('dishes')
+    .then((favorite)=>{
+      res.statusCode = 200
+      res.setHeader('Content-Type', 'application/json');
+      res.json(favorite);
+    })
   }, (err)=>next(err))
   .catch((error)=>next(error));
 });
