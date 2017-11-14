@@ -56,6 +56,27 @@ exports.verifyCommentUser = function(req, res, next) {
   }
 }
 
+exports.me = function(req,res){
+  // console.log(req);
+    if (req.headers && req.headers.authorization) {
+        var authorization = req.headers.authorization;
+        try {
+            decoded = jwt.verify(authorization, config.secretKey);
+        } catch (e) {
+            return res.status(401).send('unauthorized');
+        }
+        var userId = decoded.id;
+        console.log(userId);
+        // Fetch the user by id
+        // User.findOne({_id: userId}).then(function(user){
+        //     // Do something with the user
+        //     return res.send(200);
+        // });
+        return userId;
+    }
+    return res.send(500);
+}
+
 exports.verifyuser = passport.authenticate('jwt', {session: 'false'});
 exports.facebookPassport = passport.use(new FacebookTokenStrategy({
     clientID: config.facebook.clientId,
